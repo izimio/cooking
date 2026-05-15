@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Recettes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* gray-100 */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .view-transition {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .hidden-view {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+
+        .active-view {
+            opacity: 1;
+            transform: translateY(0);
+            position: relative;
+        }
+
+        /* Personnalisation de la scrollbar pour un look plus clean sur desktop */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen pb-10 relative overflow-x-hidden">
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <button id="backBtn" class="p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors hidden" aria-label="Retour">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+            </button>
+            <h1 id="headerTitle" class="text-lg font-semibold text-center flex-1">Sélectionnez une langue</h1>
+            
+            <div class="relative">
+                <button id="langBtn" class="p-2 -mr-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                    </svg>
+                    <span id="currentLangDisplay" class="text-xs font-medium uppercase">FR</span>
+                </button>
+                
+                <!-- Menu déroulant langues -->
+                <div id="langMenu" class="hidden absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                    <button class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center justify-between" onclick="setLanguage('fr')">Français <span id="check-fr" class="text-blue-500">✓</span></button>
+                    <button class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center justify-between" onclick="setLanguage('en')">English <span id="check-en" class="text-blue-500 hidden">✓</span></button>
+                    <button class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center justify-between" onclick="setLanguage('ko')">한국어 <span id="check-ko" class="text-blue-500 hidden">✓</span></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4 relative">
+        
+        <div id="welcomeView" class="view-transition active-view flex flex-col items-center justify-center min-h-[60vh]">
+            <div class="text-center mb-8">
+                <span class="text-4xl mb-4 block">👨‍🍳</span>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Bienvenue !</h2>
+                <p class="text-gray-500">Choisissez votre langue pour commencer.</p>
+            </div>
+            
+            <div class="w-full max-w-xs flex flex-col gap-3">
+                <button onclick="initApp('fr')" class="w-full bg-white border border-gray-200 text-gray-800 font-medium py-4 px-6 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 active:scale-95 transition-all flex items-center justify-between">
+                    <span class="text-xl">🇫🇷</span>
+                    <span>Français</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+                
+                <button onclick="initApp('en')" class="w-full bg-white border border-gray-200 text-gray-800 font-medium py-4 px-6 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 active:scale-95 transition-all flex items-center justify-between">
+                    <span class="text-xl">🇬🇧</span>
+                    <span>English</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+                
+                <button onclick="initApp('ko')" class="w-full bg-white border border-gray-200 text-gray-800 font-medium py-4 px-6 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 active:scale-95 transition-all flex items-center justify-between">
+                    <span class="text-xl">🇰🇷</span>
+                    <span>한국어</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="listView" class="view-transition hidden-view">
+            <h2 id="listTitle" class="text-2xl font-bold mb-6 text-gray-900 px-1 mt-2">Mes Recettes</h2>
+            <div id="recipeList" class="flex flex-col gap-4">
+                <!-- Les cartes de recettes seront injectées ici par JS -->
+            </div>
+        </div>
+
+        <div id="detailView" class="view-transition hidden-view">
+            <div class="bg-white rounded-3xl shadow-sm overflow-hidden mb-6">
+                <!-- Image générique avec couleur de fond basée sur la recette -->
+                <div id="recipeHeader" class="h-32 bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                    <span id="recipeEmoji" class="text-6xl drop-shadow-md">🥓</span>
+                </div>
+                
+                <div class="p-6">
+                    <h2 id="detailTitle" class="text-2xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">Titre de la recette</h2>
+                    
+                    <div class="mb-8">
+                        <h3 id="ingredientsTitle" class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                            Ingrédients
+                        </h3>
+                        <ul id="ingredientsList" class="grid grid-cols-1 gap-y-2 text-gray-700 bg-gray-50 p-4 rounded-2xl">
+                            <!-- Ingrédients injectés ici -->
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 id="stepsTitle" class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                            Étapes
+                        </h3>
+                        <div id="stepsList" class="space-y-4">
+                            <!-- Étapes injectées ici -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Données des recettes
+        const recipesData = [
+          {
+            "id": "quiche_lardons",
+            "emoji": "🥓",
+            "color": "from-orange-400 to-red-500",
+            "title": {
+              "fr": "Quiche aux Lardons",
+              "en": "Bacon Quiche",
+              "ko": "베이컨 키슈"
+            },
+            "ingredients": {
+              "fr": ["Pâte", "Lardons", "Crème fraîche", "Herbes", "Sel", "Poivre", "Œufs", "Lait", "Beurre"],
+              "en": ["Pie crust (dough)", "Bacon (lardons)", "Crème fraîche", "Herbs", "Salt", "Pepper", "Eggs", "Milk", "Butter"],
+              "ko": ["파이 반죽", "베이컨(라르동)", "크렘 프레시(생크림)", "허브", "소금", "후추", "계란", "우유", "버터"]
+            },
+            "steps": {
+              "fr": [
+                "Préchauffez le four à 210°C (thermostat 7). Étalez la pâte dans un moule.",
+                "Piquez le fond à la fourchette et parsemez de copeaux de beurre.",
+                "Faites rissoler les lardons à la poêle, puis épongez-les avec du papier absorbant.",
+                "Battez les œufs avec la crème fraîche et le lait.",
+                "Incorporez les lardons à la préparation.",
+                "Assaisonnez de sel et de poivre.",
+                "Versez le mélange sur la pâte.",
+                "Enfournez et laissez cuire 25 minutes."
+              ],
+              "en": [
+                "Preheat the oven to 210°C (410°F). Spread the dough in a pie dish.",
+                "Prick the base with a fork and scatter with butter shavings.",
+                "Brown the bacon in a pan, then drain the excess fat on paper towels.",
+                "Beat the eggs with the crème fraîche and milk.",
+                "Add the bacon to the mixture.",
+                "Season with salt and pepper.",
+                "Pour the mixture over the dough.",
+                "Bake in the oven for 25 minutes."
+              ],
+              "ko": [
+                "오븐을 210°C로 예열합니다. 파이 틀에 반죽을 넓게 폅니다.",
+                "포크로 바닥에 구멍을 내고 버터 조각을 흩뿌립니다.",
+                "베이컨을 프라이팬에 노릇하게 구운 뒤 키친타월로 기름기를 제거합니다.",
+                "계란, 크렘 프레시, 우유를 함께 섞습니다.",
+                "구운 베이컨을 혼합물에 넣습니다.",
+                "소금과 후추로 간을 합니다.",
+                "반죽 위에 혼합물을 붓습니다.",
+                "25분간 오븐에서 굽습니다."
+              ]
+            }
+          },
+          {
+            "id": "quiche_thon",
+            "emoji": "🐟",
+            "color": "from-cyan-400 to-blue-500",
+            "title": {
+              "fr": "Quiche au Thon",
+              "en": "Tuna Quiche",
+              "ko": "참치 키슈"
+            },
+            "ingredients": {
+              "fr": ["Pâte", "Thon", "Crème", "Herbes de Provence", "Sel", "Poivre", "Œufs", "Lait", "Gruyère râpé"],
+              "en": ["Pie crust (dough)", "Tuna", "Cream", "Herbes de Provence", "Salt", "Pepper", "Eggs", "Milk", "Grated Gruyère cheese"],
+              "ko": ["파이 반죽", "참치", "크림", "프로방스 허브", "소금", "후추", "계란", "우유", "그뤼예르 치즈"]
+            },
+            "steps": {
+              "fr": [
+                "Placez la pâte dans un moule et piquez-la avec une fourchette.",
+                "Badigeonnez le fond avec un peu de crème.",
+                "Écrasez le thon, puis répartissez-le sur la pâte.",
+                "Dispersez les herbes de Provence sur le thon.",
+                "Mélangez les œufs, la crème et le lait (ainsi qu'un peu de gruyère selon les goûts). Assaisonnez de sel et de poivre, puis versez sur la pâte (le mélange doit recouvrir le thon).",
+                "Recouvrez le tout de gruyère.",
+                "Cuisez au four à 200°C pendant 20 à 25 minutes."
+              ],
+              "en": [
+                "Place the dough in a pie dish and prick it with a fork.",
+                "Brush the bottom of the dough with a little cream.",
+                "Mash the tuna, then spread it evenly over the dough.",
+                "Sprinkle the Herbes de Provence over the tuna.",
+                "Mix the eggs, cream, and milk (add Gruyère to taste). Season with salt and pepper, then pour over the dough (it should cover the tuna).",
+                "Cover the top entirely with Gruyère cheese.",
+                "Bake in the oven at 200°C (390°F) for 20 to 25 minutes."
+              ],
+              "ko": [
+                "파이 틀에 반죽을 깔고 포크로 구멍을 냅니다.",
+                "반죽 바닥에 크림을 약간 바릅니다.",
+                "참치를 으깬 뒤 반죽 위에 골고루 올립니다.",
+                "참치 위에 프로방스 허브를 뿌립니다.",
+                "계란, 크림, 우유를 섞고 (취향에 따라 그뤼예르 치즈 추가), 소금과 후추로 간을 한 뒤 반죽 위에 붓습니다 (참치가 덮여야 합니다).",
+                "맨 위에 그뤼예르 치즈를 듬뿍 덮어줍니다.",
+                "200°C 오븐에서 20~25분간 굽습니다."
+              ]
+            }
+          },
+          {
+            "id": "mousse_chocolat",
+            "emoji": "🍫",
+            "color": "from-amber-700 to-amber-900",
+            "title": {
+              "fr": "Mousse au Chocolat",
+              "en": "Chocolate Mousse",
+              "ko": "초콜릿 무스"
+            },
+            "ingredients": {
+              "fr": ["200g de chocolat noir", "75g de chocolat au lait", "125g de beurre", "6 œufs", "½ cuillère à café de café", "Sel"],
+              "en": ["200g dark chocolate", "75g milk chocolate", "125g butter", "6 eggs", "½ tsp coffee", "Salt"],
+              "ko": ["다크 초콜릿 200g", "밀크 초콜릿 75g", "버터 125g", "계란 6개", "커피 ½ 티스푼", "소금"]
+            },
+            "steps": {
+              "fr": [
+                "Cassez le chocolat en morceaux et faites-le fondre au bain-marie à feu doux.",
+                "Hors du feu, ajoutez le beurre et 4 jaunes d'œufs en tournant vivement, puis ajoutez le café.",
+                "Battez les 6 blancs d'œufs en neige avec une pincée de sel.",
+                "Incorporez-les progressivement à la préparation en soulevant la pâte délicatement. NE PAS FOUETTER !",
+                "Versez la mousse dans une coupe et placez-la au réfrigérateur pendant 4 heures minimum."
+              ],
+              "en": [
+                "Break the chocolate into pieces and melt it in a double boiler over low heat.",
+                "Off the heat, add the butter and 4 egg yolks, stirring briskly, then add the coffee.",
+                "Beat the 6 egg whites until stiff with a pinch of salt.",
+                "Gradually fold the egg whites into the chocolate mixture, lifting delicately. DO NOT WHIP!",
+                "Pour the mousse into a bowl and refrigerate for a minimum of 4 hours."
+              ],
+              "ko": [
+                "초콜릿을 조각내어 약한 불에서 중탕으로 녹입니다.",
+                "불에서 내린 후 버터와 계란 노른자 4개를 넣고 빠르게 저은 다음, 커피를 추가합니다.",
+                "소금 한 꼬집을 넣고 계란 흰자 6개를 단단한 머랭이 될 때까지 거품기로 칩니다.",
+                "머랭을 초콜릿 혼합물에 조심스럽게 퍼 올리듯 점진적으로 섞어줍니다. 절대 휘젓지 마세요!",
+                "무스를 그릇에 담고 최소 4시간 동안 냉장고에 보관합니다."
+              ]
+            }
+          }
+        ];
+
+        let currentLang = 'fr'; // par défaut mais non utilisé avant sélection
+        let currentView = 'welcomeView';
+        let activeRecipeId = null;
+
+        const translations = {
+            fr: {
+                headerSelect: "Sélectionnez une langue",
+                headerApp: "Recettes",
+                listTitle: "Mes Recettes",
+                ingredients: "Ingrédients",
+                steps: "Étapes",
+                stepPrefix: "Étape"
+            },
+            en: {
+                headerSelect: "Select a language",
+                headerApp: "Recipes",
+                listTitle: "My Recipes",
+                ingredients: "Ingredients",
+                steps: "Steps",
+                stepPrefix: "Step"
+            },
+            ko: {
+                headerSelect: "언어 선택",
+                headerApp: "레시피",
+                listTitle: "내 레시피",
+                ingredients: "재료",
+                steps: "조리 순서",
+                stepPrefix: "단계"
+            }
+        };
+
+        function switchView(viewId) {
+            // Masquer la vue courante
+            document.getElementById(currentView).classList.remove('active-view');
+            document.getElementById(currentView).classList.add('hidden-view');
+            
+            // Afficher la nouvelle vue
+            const newView = document.getElementById(viewId);
+            newView.classList.remove('hidden-view');
+            // Petit délai pour permettre l'application de la classe hidden-view sur l'ancien élément
+            setTimeout(() => {
+                newView.classList.add('active-view');
+            }, 10);
+            
+            currentView = viewId;
+            updateHeader();
+        }
+
+        function updateHeader() {
+            const backBtn = document.getElementById('backBtn');
+            const headerTitle = document.getElementById('headerTitle');
+            const langBtn = document.getElementById('langBtn');
+
+            if (currentView === 'welcomeView') {
+                backBtn.classList.add('hidden');
+                langBtn.classList.add('invisible'); // On le cache sur l'accueil car on choisit en grand
+                headerTitle.textContent = translations[currentLang]?.headerSelect || "Sélectionnez une langue";
+            } else if (currentView === 'listView') {
+                backBtn.classList.add('hidden');
+                langBtn.classList.remove('invisible');
+                headerTitle.textContent = translations[currentLang].headerApp;
+            } else if (currentView === 'detailView') {
+                backBtn.classList.remove('hidden');
+                langBtn.classList.remove('invisible');
+                // Le titre est mis à jour lors du rendu de la recette
+                const recipe = recipesData.find(r => r.id === activeRecipeId);
+                headerTitle.textContent = recipe.title[currentLang];
+            }
+        }
+
+        function initApp(lang) {
+            setLanguage(lang);
+            switchView('listView');
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            
+            // Mettre à jour l'affichage du bouton langue
+            document.getElementById('currentLangDisplay').textContent = lang;
+            
+            // Mettre à jour les checks dans le menu
+            ['fr', 'en', 'ko'].forEach(l => {
+                const check = document.getElementById(`check-${l}`);
+                if (l === lang) {
+                    check.classList.remove('hidden');
+                } else {
+                    check.classList.add('hidden');
+                }
+            });
+
+            // Fermer le menu
+            document.getElementById('langMenu').classList.add('hidden');
+
+            // Mettre à jour l'UI statique
+            document.getElementById('listTitle').textContent = translations[lang].listTitle;
+            document.getElementById('ingredientsTitle').innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>${translations[lang].ingredients}`;
+            document.getElementById('stepsTitle').innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>${translations[lang].steps}`;
+
+            // Re-rendre les vues en fonction de la langue
+            renderRecipeList();
+            if (currentView === 'detailView' && activeRecipeId) {
+                renderRecipeDetail(activeRecipeId);
+            }
+            updateHeader();
+        }
+
+        function renderRecipeList() {
+            const listContainer = document.getElementById('recipeList');
+            listContainer.innerHTML = '';
+
+            recipesData.forEach(recipe => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer";
+                card.onclick = () => openRecipe(recipe.id);
+
+                const iconDiv = document.createElement('div');
+                iconDiv.className = `w-14 h-14 rounded-xl flex items-center justify-center text-2xl bg-gradient-to-br ${recipe.color} text-white shadow-inner flex-shrink-0`;
+                iconDiv.textContent = recipe.emoji;
+
+                const textDiv = document.createElement('div');
+                textDiv.className = "flex-1";
+                
+                const title = document.createElement('h3');
+                title.className = "font-semibold text-gray-900 text-lg";
+                title.textContent = recipe.title[currentLang];
+                
+                const meta = document.createElement('p');
+                meta.className = "text-sm text-gray-500 mt-1";
+                meta.textContent = `${recipe.ingredients[currentLang].length} ${translations[currentLang].ingredients.toLowerCase()}`;
+
+                const arrowDiv = document.createElement('div');
+                arrowDiv.className = "text-gray-300";
+                arrowDiv.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>';
+
+                textDiv.appendChild(title);
+                textDiv.appendChild(meta);
+                
+                card.appendChild(iconDiv);
+                card.appendChild(textDiv);
+                card.appendChild(arrowDiv);
+                
+                listContainer.appendChild(card);
+            });
+        }
+
+        function openRecipe(id) {
+            activeRecipeId = id;
+            renderRecipeDetail(id);
+            window.scrollTo(0,0);
+            switchView('detailView');
+        }
+
+        function renderRecipeDetail(id) {
+            const recipe = recipesData.find(r => r.id === id);
+            
+            // Header styling
+            document.getElementById('recipeHeader').className = `h-32 flex items-center justify-center bg-gradient-to-br ${recipe.color}`;
+            document.getElementById('recipeEmoji').textContent = recipe.emoji;
+            document.getElementById('detailTitle').textContent = recipe.title[currentLang];
+
+            // Ingrédients
+            const ingList = document.getElementById('ingredientsList');
+            ingList.innerHTML = '';
+            recipe.ingredients[currentLang].forEach(ing => {
+                const li = document.createElement('li');
+                li.className = "flex items-start gap-2 relative pl-4 before:content-[''] before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-blue-400 before:rounded-full";
+                li.textContent = ing;
+                ingList.appendChild(li);
+            });
+
+            // Étapes
+            const stepsList = document.getElementById('stepsList');
+            stepsList.innerHTML = '';
+            recipe.steps[currentLang].forEach((step, index) => {
+                const stepBlock = document.createElement('div');
+                stepBlock.className = "flex gap-4 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm";
+                
+                const numberDiv = document.createElement('div');
+                numberDiv.className = "w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm flex-shrink-0";
+                numberDiv.textContent = index + 1;
+                
+                const textDiv = document.createElement('div');
+                const stepLabel = document.createElement('span');
+                stepLabel.className = "block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1";
+                stepLabel.textContent = `${translations[currentLang].stepPrefix} ${index + 1}`;
+                
+                const stepText = document.createElement('p');
+                stepText.className = "text-gray-800 text-base leading-relaxed";
+                stepText.textContent = step;
+
+                textDiv.appendChild(stepLabel);
+                textDiv.appendChild(stepText);
+                
+                stepBlock.appendChild(numberDiv);
+                stepBlock.appendChild(textDiv);
+                
+                stepsList.appendChild(stepBlock);
+            });
+        }
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            switchView('listView');
+            activeRecipeId = null;
+        });
+
+        // Gestion du menu déroulant de langue
+        const langBtn = document.getElementById('langBtn');
+        const langMenu = document.getElementById('langMenu');
+
+        langBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langMenu.classList.toggle('hidden');
+        });
+
+        // Fermer le menu si on clique ailleurs
+        document.addEventListener('click', () => {
+            if (!langMenu.classList.contains('hidden')) {
+                langMenu.classList.add('hidden');
+            }
+        });
+
+        // Initialisation de la langue par défaut pour la page d'accueil
+        updateHeader();
+
+    </script>
+</body>
+</html>
